@@ -1,66 +1,75 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState } from 'react';
+import FlightCard from '@/components/FlightCard';
+import { Flight } from '@/app/api/flights/route';
 
 export default function Home() {
+  const [flightNumber, setFlightNumber] = useState('');
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!flightNumber.trim()) return;
+
+    setLoading(true);
+    setHasSearched(true);
+    setFlights([]);
+
+    try {
+      const response = await fetch(`/api/flights?flightNumber=${encodeURIComponent(flightNumber)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFlights(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch flights:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="container">
+      <h1>Flight Lookup</h1>
+
+      <form onSubmit={handleSearch} className="search-form">
+        <input
+          type="text"
+          value={flightNumber}
+          onChange={(e) => setFlightNumber(e.target.value)}
+          placeholder="Enter flight number (e.g., AA123)"
+          className="search-input"
+          aria-label="Flight number"
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <button
+          type="submit"
+          className="search-button"
+          disabled={loading || !flightNumber.trim()}
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </form>
+
+      <div className="results-container">
+        {loading && (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+            Searching for flights...
+          </div>
+        )}
+
+        {!loading && hasSearched && flights.length === 0 && (
+          <div className="error-message">
+            No flights found for "{flightNumber}". Please try another flight number.
+          </div>
+        )}
+
+        {!loading && flights.map((flight) => (
+          <FlightCard key={flight.flightNumber} flight={flight} />
+        ))}
+      </div>
+    </main>
   );
 }
