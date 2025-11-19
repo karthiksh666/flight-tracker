@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flight Lookup App
 
-## Getting Started
+A premium, Next.js-based flight tracking application that allows users to search for flight details using flight numbers. It features a modern dark-mode UI, real-time data integration (via Aviationstack), and Google Calendar support.
 
-First, run the development server:
+## 📂 Project Structure & File Explanation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Here is a detailed breakdown of every file in the source code:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Core Application (`src/app`)
+- **`page.tsx`**: The main entry point of the application. It contains the search form logic, state management (loading, results, errors), and renders the `FlightCard` components.
+- **`layout.tsx`**: The root layout that wraps the entire application. It handles global font settings (Inter) and metadata.
+- **`globals.css`**: Contains all global styles, CSS variables for the theme (colors, fonts), and utility classes for the premium glassmorphism design.
+- **`api/flights/route.ts`**: The backend API route handler.
+    - It first attempts to fetch real data from the **Aviationstack API**.
+    - If the API fails or returns no data, it gracefully falls back to a **Mock Data** set for demonstration purposes.
+    - It handles data mapping from the external API format to our internal `Flight` interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Components (`src/components`)
+- **`FlightCard.tsx`**: A reusable UI component that displays a single flight's details.
+    - Shows origin, destination, times, status (On Time/Delayed), and gate info.
+    - Includes the "Add to Calendar" button logic.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Libraries & Utilities (`src/lib`)
+- **`aviationstack.ts`**: Contains the logic for making HTTP requests to the Aviationstack API. It handles the API key and URL construction.
+- **`calendar.ts`**: A utility function `generateGoogleCalendarUrl` that takes flight data and generates a direct link to create a Google Calendar event.
 
-## Learn More
+### Types (`src/types`)
+- **`aviationstack.ts`**: TypeScript interfaces defining the shape of the response expected from the Aviationstack API. This ensures type safety across the app.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 CI/CD Setup (Continuous Integration / Continuous Deployment)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CI/CD allows you to automatically test and deploy your application whenever you make changes. We recommend using **GitHub Actions**.
 
-## Deploy on Vercel
+### How it works
+1.  **CI (Continuous Integration)**: Every time you push code, a "workflow" runs to check for errors (Linting) and verify the build succeeds.
+2.  **CD (Continuous Deployment)**: If the CI passes, the code is automatically deployed to Vercel (configured via Vercel's dashboard).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Setting up the CI Pipeline
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+I have created a workflow file for you at `.github/workflows/ci.yml`. Here is what it does:
+
+1.  **Trigger**: Runs on every push to the `main` branch or pull requests.
+2.  **Job**:
+    - Checks out your code.
+    - Installs dependencies (`npm ci`).
+    - Runs Linting (`npm run lint`) to catch code style issues.
+    - Runs the Build (`npm run build`) to ensure the app compiles correctly.
+
+### How to Enable
+1.  Initialize a git repository (if you haven't):
+    ```bash
+    git init
+    git add .
+    git commit -m "Initial commit"
+    ```
+2.  Push to GitHub.
+3.  Go to the **Actions** tab in your GitHub repository to see the workflow running!
+
+## 🛠 Local Development
+
+1.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+2.  **Set up Environment Variables**:
+    Create a `.env.local` file in the root:
+    ```env
+    AVIATIONSTACK_API_KEY=your_api_key_here
+    ```
+3.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+4.  Open [http://localhost:3000](http://localhost:3000).
